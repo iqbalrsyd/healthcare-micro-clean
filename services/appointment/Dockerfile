@@ -1,7 +1,7 @@
 # Common hardened Dockerfile for all FastAPI services in this stack.
 # Pinned by digest, runs as non-root, read-only rootfs friendly, distroless runtime.
 # syntax=docker/dockerfile:1.6
-FROM python:3.12.7-slim-bookworm@sha256:c7b0d4c1b9b1e0a3f4d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192a3b AS builder
+FROM python:3.12.7-slim-bookworm@sha256:1c44018d7eb40488f29e7c6ad4991d3200507e14dca71b94fe61011815e98155 AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -16,7 +16,7 @@ RUN groupadd --system --gid 10000 app \
 COPY requirements.txt ./
 RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
 
-FROM python:3.12.7-slim-bookworm@sha256:c7b0d4c1b9b1e0a3f4d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192a3b AS runtime
+FROM python:3.12.7-slim-bookworm@sha256:1c44018d7eb40488f29e7c6ad4991d3200507e14dca71b94fe61011815e98155 AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

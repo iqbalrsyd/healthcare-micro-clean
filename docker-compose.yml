@@ -181,7 +181,7 @@ services:
           memory: 512M
 
   auth-db:
-    image: postgres:16.4-bookworm@sha256:4007c8c0b16b4f4b3a2c1d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192
+    image: postgres:16.4-bookworm@sha256:9a70e4d1c03a5066080292db2dd95ee3965d3651316e21989fa0935afb8ce8ca
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${AUTH_DB_USER}
@@ -198,7 +198,7 @@ services:
       retries: 5
 
   patient-db:
-    image: postgres:16.4-bookworm@sha256:4007c8c0b16b4f4b3a2c1d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192
+    image: postgres:16.4-bookworm@sha256:9a70e4d1c03a5066080292db2dd95ee3965d3651316e21989fa0935afb8ce8ca
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${PATIENT_DB_USER}
@@ -215,7 +215,7 @@ services:
       retries: 5
 
   appointment-db:
-    image: postgres:16.4-bookworm@sha256:4007c8c0b16b4f4b3a2c1d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192
+    image: postgres:16.4-bookworm@sha256:9a70e4d1c03a5066080292db2dd95ee3965d3651316e21989fa0935afb8ce8ca
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${APPOINTMENT_DB_USER}
@@ -232,7 +232,7 @@ services:
       retries: 5
 
   billing-db:
-    image: postgres:16.4-bookworm@sha256:4007c8c0b16b4f4b3a2c1d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192
+    image: postgres:16.4-bookworm@sha256:9a70e4d1c03a5066080292db2dd95ee3965d3651316e21989fa0935afb8ce8ca
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${BILLING_DB_USER}

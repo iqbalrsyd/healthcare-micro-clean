@@ -19,7 +19,7 @@ import jwt
 from fastapi import Depends, Header, HTTPException, Request, status
 from passlib.context import CryptContext
 
-from .config import get_jwt_settings, get_service_token
+from config import get_jwt_settings, get_service_token
 
 LOGGER = logging.getLogger(__name__)
 

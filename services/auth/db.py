@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from .config import get_db_settings
+from config import get_db_settings
 
 LOGGER = logging.getLogger(__name__)
 
