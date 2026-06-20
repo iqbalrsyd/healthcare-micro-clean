@@ -1,0 +1,259 @@
+# Hardened local stack for healthcare microservices.
+# All secrets are pulled from .env / host env / secret manager. No defaults are baked in.
+services:
+  auth:
+    build: ./services/auth
+    image: healthcare-micro-clean/auth:1.0.0
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    user: "10001:10001"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - JWT_EXPIRY_SECONDS=${JWT_EXPIRY_SECONDS}
+      - DB_HOST=${AUTH_DB_HOST}
+      - DB_PORT=${AUTH_DB_PORT}
+      - DB_NAME=${AUTH_DB_NAME}
+      - DB_USER=${AUTH_DB_USER}
+      - DB_PASSWORD=${AUTH_DB_PASSWORD}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  patient:
+    build: ./services/patient
+    image: healthcare-micro-clean/patient:1.0.0
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    user: "10002:10002"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - AUTH_SERVICE_URL=http://auth:8000
+      - SERVICE_TOKEN_SECRET=${SERVICE_TOKEN_SECRET}
+      - DB_HOST=${PATIENT_DB_HOST}
+      - DB_PORT=${PATIENT_DB_PORT}
+      - DB_NAME=${PATIENT_DB_NAME}
+      - DB_USER=${PATIENT_DB_USER}
+      - DB_PASSWORD=${PATIENT_DB_PASSWORD}
+    depends_on:
+      auth:
+        condition: service_healthy
+      patient-db:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  appointment:
+    build: ./services/appointment
+    image: healthcare-micro-clean/appointment:1.0.0
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    user: "10003:10003"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - AUTH_SERVICE_URL=http://auth:8000
+      - SERVICE_TOKEN_SECRET=${SERVICE_TOKEN_SECRET}
+      - DB_HOST=${APPOINTMENT_DB_HOST}
+      - DB_PORT=${APPOINTMENT_DB_PORT}
+      - DB_NAME=${APPOINTMENT_DB_NAME}
+      - DB_USER=${APPOINTMENT_DB_USER}
+      - DB_PASSWORD=${APPOINTMENT_DB_PASSWORD}
+    depends_on:
+      auth:
+        condition: service_healthy
+      appointment-db:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  billing:
+    build: ./services/billing
+    image: healthcare-micro-clean/billing:1.0.0
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    user: "10004:10004"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ISSUER=${JWT_ISSUER}
+      - JWT_AUDIENCE=${JWT_AUDIENCE}
+      - PAYMENT_GATEWAY_KEY=${PAYMENT_GATEWAY_KEY}
+      - AUTH_SERVICE_URL=http://auth:8000
+      - SERVICE_TOKEN_SECRET=${SERVICE_TOKEN_SECRET}
+      - DB_HOST=${BILLING_DB_HOST}
+      - DB_PORT=${BILLING_DB_PORT}
+      - DB_NAME=${BILLING_DB_NAME}
+      - DB_USER=${BILLING_DB_USER}
+      - DB_PASSWORD=${BILLING_DB_PASSWORD}
+    depends_on:
+      auth:
+        condition: service_healthy
+      billing-db:
+        condition: service_healthy
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+  auth-db:
+    image: postgres:16.4-bookworm@sha256:4007c8c0b16b4f4b3a2c1d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${AUTH_DB_USER}
+      - POSTGRES_PASSWORD=${AUTH_DB_PASSWORD}
+      - POSTGRES_DB=${AUTH_DB_NAME}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER} -d ${AUTH_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  patient-db:
+    image: postgres:16.4-bookworm@sha256:4007c8c0b16b4f4b3a2c1d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${PATIENT_DB_USER}
+      - POSTGRES_PASSWORD=${PATIENT_DB_PASSWORD}
+      - POSTGRES_DB=${PATIENT_DB_NAME}
+    volumes:
+      - patient-db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PATIENT_DB_USER} -d ${PATIENT_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  appointment-db:
+    image: postgres:16.4-bookworm@sha256:4007c8c0b16b4f4b3a2c1d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${APPOINTMENT_DB_USER}
+      - POSTGRES_PASSWORD=${APPOINTMENT_DB_PASSWORD}
+      - POSTGRES_DB=${APPOINTMENT_DB_NAME}
+    volumes:
+      - appointment-db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APPOINTMENT_DB_USER} -d ${APPOINTMENT_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  billing-db:
+    image: postgres:16.4-bookworm@sha256:4007c8c0b16b4f4b3a2c1d5e6f7081923a4b5c6d7e8f9012a3b4c5d6e7f809192
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${BILLING_DB_USER}
+      - POSTGRES_PASSWORD=${BILLING_DB_PASSWORD}
+      - POSTGRES_DB=${BILLING_DB_NAME}
+    volumes:
+      - billing-db-data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${BILLING_DB_USER} -d ${BILLING_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  auth-db-data:
+  patient-db-data:
+  appointment-db-data:
+  billing-db-data:

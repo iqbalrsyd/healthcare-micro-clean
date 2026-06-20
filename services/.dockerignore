@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+tests/integration_artifacts/
+*.log
+.DS_Store
